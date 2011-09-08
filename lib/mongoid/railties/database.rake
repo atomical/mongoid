@@ -82,6 +82,18 @@ namespace :db do
       ::Rails::Mongoid.index_children(get_mongoid_models)
     end
 
+    desc 'Remove the indexes defined on your mongoid models'
+    task :remove_indexes => :environment do
+      models = get_mongoid_models
+      models.each do |model|
+        unless model.collection.index_information.empty?
+          model.collection.drop_indexes
+        end
+      end
+      #All collections - perhaps ones not related to our rails project
+      #Mongoid.master.collections.select { |c| c.name != 'system.indexes' }.each(&:drop_indexes)
+    end
+    
     def convert_ids(obj)
       if obj.is_a?(String) && obj =~ /^[a-f0-9]{24}$/
         BSON::ObjectId(obj)
